@@ -1,0 +1,42 @@
+---
+title: First Blog Post
+author: Katelyn Coolidge
+date: '2021-05-09'
+slug: first-blog-post
+categories: []
+tags: []
+description: ''
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE)
+```
+
+```{r global_options, include=FALSE}
+#DO NOT EDIT THIS CHUNK OR ANYTHING ABOVE IT!
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, fig.align = "center", warning = F, message = F, tidy=T, tidy.opts=list(width.cutoff=50))
+```
+
+Hello!
+
+This is a picture of a python.
+![](/img/snake.jpeg)
+We are learning python in my Comp Bio class.
+
+```{R}
+library(reticulate)
+go<-"Hook'em"
+```
+
+Here is an example of R and python working together.
+
+```{python}
+#py_install()
+UT = "horns"
+print(r.go, UT)
+```
+
+
+
+
+

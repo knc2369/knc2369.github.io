@@ -1,0 +1,325 @@
+---
+title: "Project 2 Coolidge"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+ class_diag <- function(probs,truth){ 
+  #CONFUSION MATRIX: CALCULATE ACCURACY, TPR, TNR, PPV 
+  if(is.character(truth)==TRUE) truth<-as.factor(truth) 
+  if(is.numeric(truth)==FALSE & is.logical(truth)==FALSE) truth<-as.numeric(truth)-1 
+  tab<-table(factor(probs>.5,levels=c("FALSE","TRUE")),factor(truth, levels=c(0,1))) 
+  acc=sum(diag(tab))/sum(tab) 
+  sens=tab[2,2]/colSums(tab)[2] 
+  spec=tab[1,1]/colSums(tab)[1] 
+  ppv=tab[2,2]/rowSums(tab)[2] 
+  
+#CALCULATE EXACT AUC 
+  ord<-order(probs, decreasing=TRUE) 
+  probs <- probs[ord]; truth <- truth[ord] 
+  TPR=cumsum(truth)/max(1,sum(truth))  
+  FPR=cumsum(!truth)/max(1,sum(!truth)) 
+  dup <-c(probs[-1]>=probs[-length(probs)], FALSE) 
+  TPR <-c(0,TPR[!dup],1); FPR<-c(0,FPR[!dup],1) 
+  n <- length(TPR) 
+  auc <- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n])) 
+  data.frame(acc,sens,spec,ppv,auc) 
+}
+```
+
+## Introduction
+
+This data is from the 1980 US Census, specifically concerning married women aged 21-35 with two or more children. It has 30,000 randomly selected observations on 8 variables. The variables should be interpreted as follows:
+
+morekids: Does the mother have more than 2 children?
+gender1: Gender of the first child
+gender2: Gender of the second child
+age: Mother's age in years
+afam: Does the mother identify as African American?
+hispanic: Does the mother identify as Hispanic?
+other: Does the mother identify as something other than African American, Hispanic, or Caucasian?
+work: Number of weeks the mother worked in 1979
+
+```{R}
+
+library(tidyverse)
+fertility <- read_csv("Fertility2.csv")
+glimpse(fertility)
+
+```
+
+## MANOVA Test
+
+Below I performed a MANOVA testing whether the number of weeks worked and the age of the mother show a mean difference across levels of the catagorical variable afam. The very small p value indicated that the overall MANOVA is significant.
+
+```{R}
+
+man1<-manova(cbind(work,age)~afam, data=fertility)
+summary(man1)
+
+```
+
+Therefore, I performed follow-up one-way ANOVAs for each variable. I found that both are significant. I performed post-hoc t tests.
+
+```{R}
+
+summary.aov(man1)
+fertility%>%group_by(afam)%>%summarize(mean(age),mean(work))
+pairwise.t.test(fertility$age,fertility$afam, p.adj="none")
+pairwise.t.test(fertility$work,fertility$afam, p.adj="none")
+
+ggplot(fertility, aes(x = work, y = age)) +
+geom_point(alpha = .5) + geom_density_2d(h=2) + coord_fixed() + facet_wrap(~afam)
+
+library(rstatix)
+group <- fertility$afam
+DVs <- fertility %>% select(age,work)
+box_m(DVs, group)
+
+1-(0.95^5)
+0.05/5
+```
+
+Did 1 MANOVA, 2 ANOVAs, and 2 t tests (5 tests).
+
+Probability of at least 1 Type 1 error:
+1-0.95^5=0.2262191
+Bonferroni Correction:
+0.05/5=0.01
+Even with the correction, it's still significant.
+
+MANOVA Assumptions:
+1. Random samples, independent observations
+Probably met
+2. Multivariate normality of DVs
+Probably failed
+3. Homogeneity of within-group covariance matrices
+Probably failed
+4. Linear relationships among DVs
+Probably met
+5. No extreme univariate or multivariate outliers
+Probably met
+6. No multicollinearity.
+Probably met
+
+## Randomization Test
+
+H0: Mean weeks worked is the same for African American women as women of other races.
+HA: Mean weeks worked is different for African American women as compared to women of other races.
+
+The p value is incredibly small. It was crazy that we got that mean difference. Reject the null hypothesis.
+
+```{R}
+fertility%>%group_by(afam)%>%
+summarize(means=mean(work))%>%summarize(`mean_diff`=diff(means))
+                                         
+rand_dist<-vector()
+for(i in 1:5000){
+new<-data.frame(work=sample(fertility$work),afam=fertility$afam)
+rand_dist[i]<-mean(new[new$afam=="no",]$work)-
+mean(new[new$afam=="yes",]$work)}
+
+{hist(rand_dist,main="",ylab=""); abline(v = c(10.4405, 10.4405),col="red")}
+
+mean(rand_dist>10.4405 | rand_dist < -10.4405)
+
+```
+
+## Linear Regression Model
+
+Is there a difference in weeks worked for African American women vs.  non-African American women controlling for age?
+H0: Controlling for age, race does not explain variation in weeks worked
+H0: Controlling for race, age does not explain variation in weeks worked
+Controlling for age, for every 1-unit increase in weeks worked, odds of afam change by a factor of 10.7505
+Controlling for race, for every 1-unit increase in weeks worked, age increases by 0.7281 units. 
+
+0.02401509 is the proportion of variation in the response variable explained by the overall model (all predictors at once)
+
+Recomputing regression results with robust standard errors didn't really change anything.
+
+```{R}
+#Interpret the coefficient estimates (do not discuss significance) (10)
+library(lmtest)
+library(sandwich)
+fit<-lm(work ~ afam + age, data=fertility)
+summary(fit)
+
+#Plot the regression using ggplot() using geom_smooth(method=“lm”). (10)
+ggplot(fertility, aes(age,work, color = afam)) + geom_smooth(method = "lm", se = F, fullrange = T) + geom_point()+geom_vline(xintercept=20,lty=2)+geom_vline(xintercept=mean(fertility$age))
+
+#What proportion of the variation in the outcome does your model explain? 
+
+(sum((fertility$work-mean(fertility$work))^2)-sum(fit$residuals^2))/sum((fertility$work-mean(fertility$work))^2)
+0.02401509
+
+#Check assumptions of linearity, normality, and homoskedasticity either graphically or using a hypothesis test (5)
+
+resids<-fit$residuals; fitvals<-fit$fitted.values
+ggplot()+geom_point(aes(fitvals,resids))+geom_hline(yintercept=0, col="red")
+ggplot()+geom_histogram(aes(resids),bins=20)
+
+#Regardless, recompute regression results with robust standard errors via coeftest(..., vcov=vcovHC(...)). Discuss significance of results, including any changes from before/after robust SEs if applicable. (10)
+
+coeftest(fit, vcov = vcovHC(fit))[,1:2]
+
+```
+
+## Linear Regression Model with Bootstrapped Standard Errors
+
+The SEs changed quite a bit from the original/robust SEs. The calculations using original/robust SEs for afamyes and age were ~10.75 and ~0.73, respectively. This model yields 0.5563305	and 0.03747412	for afamyes and age.
+
+```{R}
+
+samp_distn<-replicate(5000, {
+boot_dat<-boot_dat<-fertility[sample(nrow(fertility),replace=TRUE),]
+fit<-lm(work ~ afam + age, data=boot_dat)
+coef(fit)
+})
+## Estimated SEs
+samp_distn%>%t%>%as.data.frame%>%summarize_all(sd)
+
+fit<-lm(work ~ afam + age, data=fertility)
+resids<-fit$residuals
+fitted<-fit$fitted.values
+resid_resamp<-replicate(5000,{
+new_resids<-sample(resids,replace=TRUE)
+newdat<-fertility
+newdat$new_y<-fitted+new_resids
+fit<-lm(new_y ~ afam + age, data = newdat)
+coef(fit)
+})
+
+resid_resamp%>%t%>%as.data.frame%>%summarize_all(sd)
+
+
+```
+
+## Logistic Regression Model With Two Explanatory Variables
+
+Controlling for weeks worked, for every 1-unit increase in  age, odds of afam change by a factor of 1.021881974
+Controlling for age, for every 1-unit increase in weeks worked, odds of afam change by a factor of 0.9475790646
+Accuracy: 0.9032667
+Sensitivity (TPR): 0.1082603 (this is horrible)
+Specificity (TNR): 0.9479966
+Precision (PPV): 0.1048485 (this is horrible)
+AUC: 0.6105911	this is a poor AUC value.
+It makes sense that if Sensitivity is bad, Precision will also be bad. This model has problems correctly identifying when a woman is African American. The poor AUC implies that it is only a little better than a model making random predictions about whether or not a woman is African American.
+
+```{R}
+fertility_data<-fertility%>%mutate(y=ifelse(afam=="yes",1,0))
+fit2<-glm(y~fertility$age+fertility$work, family="binomial", data=fertility_data)
+coeftest(fit2)
+probs<-predict(fit2,type="response")
+table(predict=as.numeric(probs>.1),truth=fertility_data$y)%>%addmargins
+#accuracy
+(26925+173)/30000
+#sensitivity
+173/1598
+#specificity
+26925/28402
+#precision
+173/1650
+
+fertility_data$logit <- predict(fit2, type="link")
+fertility_data%>%ggplot()+geom_density(aes(logit,color=afam,fill=afam), alpha=.3)+geom_rug(aes(logit,color=afam))
+
+library(plotROC)
+ROCplot<-ggplot(fertility_data)+geom_roc(aes(d=y,m=work+age), n.cuts=0)
+ROCplot
+calc_auc(ROCplot)
+
+```
+
+## Logistic Regression Model With All Explanatory Variables
+
+Accuracy: 0.8618333
+Sensitivity (TPR): 0.2534418 (this is horrible- a slight improvement from last time)
+Specificity (TNR): 0.8960637
+Precision (PPV): 0.1206434 (this is horrible)
+AUC: 0.6900022	(This is a poor, borderline fair AUC value.It's an improvement from before but it's not good)
+
+After doing the 10-fold CV, the accuracy increased to 0.9467333, the sensitivity decreased to ~0, and the specificity increased to ~1. The AUC decreased to 0.6882682
+
+After doing the LASSO, the following variables are retained: morekidsyes, age, hispanicyes, otheryes, and work.
+
+After performing a 10-fold CV using only the variables lasso selected, the  model’s out-of-sample AUC (0.6887184) is not that different from the logistic regression above (0.6882682). It is a little worse than the first logistic regression (0.6900022).
+
+```{R}
+#Fit model, compute in-sample classification diagnostics (Accuracy, Sensitivity, Specificity, Precision, AUC), and interpret (5)
+
+fertility_data6<-fertility%>%mutate(y=ifelse(afam=="yes",1,0))
+fertility_data6$afam <- NULL
+
+fit6<-glm(y~., family="binomial", data=fertility_data6)
+coeftest(fit6)
+probs<-predict(fit6,type="response")
+table(predict=as.numeric(probs>.1),truth=fertility_data6$y)%>%addmargins
+#accuracy
+(25450+405)/30000
+#sensitivity
+405/1598
+#specificity
+25450/28402
+#precision
+405/3357
+ROCplot<-ggplot(fertility_data6)+geom_roc(aes(d=y,m=probs), n.cuts=0)+ geom_segment(aes(x=0,xend=1,y=0,yend=1),lty=2)
+calc_auc(ROCplot)
+
+#Perform 10-fold (or repeated random sub-sampling) CV with the same model and report average out-of-sample classification diagnostics (Accuracy, Sensitivity, Specificity, Precision, and AUC); interpret AUC and compare with the in-sample metrics (10)
+
+set.seed(1234)
+k=10 #choose number of folds
+data<-fertility_data6[sample(nrow(fertility_data6)),] #randomly order rows
+folds<-cut(seq(1:nrow(fertility_data6)),breaks=k,labels=F) #create folds
+diags<-NULL
+for(i in 1:k){
+## Create training and test sets
+train<-data[folds!=i,]
+test<-data[folds==i,]
+truth<-test$y ## Truth labels for fold i
+## Train model on training set (all but fold i)
+fit<-glm(y~.,data=train,family="binomial")
+## Test model on test set (fold i)
+probs<-predict(fit,newdata = test,type="response")
+## Get diagnostics for fold i
+diags<-rbind(diags,class_diag(probs,truth))
+}
+summarize_all(diags,mean) #average diagnostics across all k folds
+
+#Perform LASSO on the same model/variables. Choose lambda to give the simplest model whose accuracy is near that of the best (i.e., lambda.1se). Discuss which variables are retained. (5)
+
+#install.packages("glmnet")
+library(glmnet)
+set.seed(1234)
+predictors <- model.matrix(y ~ (.), data = fertility_data6)[, -1]
+response_variable <- as.matrix(fertility_data6$y)
+
+cv <- cv.glmnet(predictors, response_variable, family = "binomial")
+lasso <- glmnet(predictors, response_variable, family = "binomial", lambda = cv$lambda.1se)
+coef(lasso)
+
+#Perform 10-fold CV using only the variables lasso selected: compare model’s out-of-sample AUC to that of your logistic regressions above
+
+lasso_classdiag <- fertility %>% mutate(morekids = ifelse(morekids == "yes", 1, 0)) %>% mutate(afam = ifelse(afam == "yes", 1, 0)) %>% mutate(hispanic = ifelse(hispanic == "yes", 1, 0)) %>% mutate(other = ifelse(other == "yes", 1, 0)) %>% select(morekids, age, hispanic, other, work, afam)
+
+set.seed(125)
+k = 10
+data <- lasso_classdiag[sample(nrow(lasso_classdiag)), ]
+folds <- cut(1:nrow(lasso_classdiag), breaks = k, labels = F)
+diags <- NULL
+for (i in 1:k) {
+    train <- data[folds != i, ]
+    test <- data[folds == i, ]
+    truth <- test$afam
+    fit <- glm(afam ~ (.), data = train, family = "binomial")
+    probs <- predict(fit, newdata = test, type = "response")
+    diags <- rbind(diags, class_diag(probs, truth))
+}
+summarize_all(diags, mean)
+
+```
+
+
+
+

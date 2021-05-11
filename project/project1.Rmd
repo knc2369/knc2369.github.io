@@ -1,0 +1,197 @@
+---
+title: "Project 1"
+author: "Katelyn Coolidge"
+Date: "April 4, 2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, fig.align = "center", 
+    warning = F, message = F, tidy = TRUE, tidy.opts = list(width.cutoff = 60), 
+    R.options = list(max.print = 100))
+```
+
+## Introduction
+
+The data for this project was pulled from the County Health Rankings website. For each county, I looked at two factors. 
+
+First, I observed the verage grade level performance for 3rd graders on math standardized tests. This is the data set called "math". If the third graders score a 3, they are performing at grade level. A score of 3.5 indicates that on average, the kids in that county are, on average, performing half a grade level better than expected for third graders. A score of 2.5 indicates average performance at half a grade level below what is expected.
+
+I also looked at the variable food insecurity, both in raw numbers and percentage of the population experiencing it. The Core Food Insecurity Model used information provided by the Community Population Survey, Bureau of Labor Statistics, and American Community Survey. It looked at how many people experienced a lack of reliable access to food in the past year.
+
+I chose this data because I thought that  there could be a link between them. When students are well-fed and coming from a stable home environment, I hypothesise that they should be able to perform better in school, because their brains are nourished and they're not stressed about their next meal.
+
+
+```{R}
+
+library(tidyverse)
+math <- read_csv("math.csv")
+food <- read_csv("food.csv")
+
+glimpse(math)
+glimpse(food)
+```
+
+
+## Joining/Merging
+
+When joining the data sets, I used a full join because I wanted all the variables that were unique to each data set to show up after the merge. There was nothing that I wanted to leave out. Therefore I did a full join.
+
+```{R}
+
+math_food_joined <- math %>% full_join(food)
+glimpse(math_food_joined)
+
+```
+
+## Wrangling: Part 1
+
+Here I am using some of the core dplyr functions to explore my data. First, I renamed some of the variables so they would be easier to work with. Then, I selected for the variables that I thought were most relevant. I didn't think that the number of people in each county that were food insecure was as relevant as the other data points because it doesn't scale for population the way percent does. So I selected everything but that. Then, I grouped by county and filtered for only counties that had below average math scores AND above average food insecurity. I arranged the data in descending percentage food insecure for easier analysis.
+
+```{R}
+
+math_food_joined <- math_food_joined %>% 
+  rename(Grade="Average Grade Performance (Math)", Percent_Insecure="% Food Insecure", Number_Insecure="# Food Insecure") 
+
+head(math_food_joined %>% 
+  select(County, Percent_Insecure, Grade) %>% 
+  group_by(County) %>% 
+  filter(Grade<3.1, Percent_Insecure>15) %>%
+  arrange(desc(Percent_Insecure)))
+
+```
+
+## Wrangling: Part 2
+
+Here I found summary statistics for each variable (Grade, Percent Food Insecure, and Number Food Insecure) for all counties. So the data below shows the means, standard deviation, variance, minimum, and maximum value for all three of these variables.
+
+```{R}
+
+math_food_joined %>% summarize_if(is.numeric,mean,na.rm=T)
+math_food_joined %>% summarize_if(is.numeric,sd,na.rm=T)
+math_food_joined %>% summarize_if(is.numeric,var,na.rm=T)
+math_food_joined %>% summarize_if(is.numeric,min,na.rm=T)
+math_food_joined %>% summarize_if(is.numeric,max,na.rm=T)
+
+```
+
+## Wrangling: Part 3
+
+Here, I am summarizing after grouping by a categorical variable. I created the categorical variable of Insecurity Category, and each county is either low (<10%), medium(10%<16%), or high (>16%) level food insecure. For each category of food insecurity, you can see the mean, standard deviation, varience, minimum, and maximum for each variable.
+
+```{R}
+
+Categorical_Data <- math_food_joined %>% 
+  mutate(Insecure_cat = case_when(Percent_Insecure>16 ~ "high",
+                                            Percent_Insecure<=16 & 10<=Percent_Insecure ~ "med",Percent_Insecure<10 ~ "low"))
+
+Categorical_Data %>% 
+  group_by(Insecure_cat) %>% summarize_if(is.numeric,mean,na.rm=T)
+Categorical_Data %>% 
+  group_by(Insecure_cat) %>% summarize_if(is.numeric,sd,na.rm=T)
+Categorical_Data %>% 
+  group_by(Insecure_cat) %>% summarize_if(is.numeric,var,na.rm=T)
+Categorical_Data %>% 
+  group_by(Insecure_cat) %>% summarize_if(is.numeric,min,na.rm=T)
+Categorical_Data %>% 
+  group_by(Insecure_cat) %>% summarize_if(is.numeric,max,na.rm=T)
+
+
+```
+
+## Tidying
+
+Here, I am demonstrating an ability to manipulate the data using the pivot_longer and pivot_wider functions. In the meanslong data set, I put the values for variables "Grade","Number_Insecure", and "Percent_Insecure" into one column called "Insecurity Type". Then for meanslongwide, I take the meanslong data and spread it back out again, so the variables are each in their own separate column instead of sharing one. 
+
+```{R}
+
+
+meanslong <- Categorical_Data  %>% pivot_longer(cols=c("Grade","Number_Insecure", "Percent_Insecure"), names_to="Insecurity Type")
+
+head(meanslong)
+
+meanslongwide <- meanslong %>%
+  pivot_wider(names_from="Insecurity Type",values_from="value")%>% 
+  group_by(Insecure_cat)
+
+head(meanslongwide)
+
+
+
+```
+
+
+## Visualization: Part 1
+
+Here I have created a correlation heatmap of my numeric variables (Percent_Insecure and Grade) the way we did in class. The heatmap seems to show that the data is clustered in the middle, and there aren't really distinct regions where more of the data lies than in others. This suggests a limited correlation.
+
+
+```{R}
+
+math_food_joined %>% ggplot(aes(Percent_Insecure, Grade, fill="correlation")) +geom_tile() + ggtitle("Percent Insecure and Grade Heatmap")
+
+```
+
+## Visualization: Part 2
+
+This plot shows that there is no clear trend with the data, as it appears to have a horizontal flow across the graph. It seems to suggest that math scores might be independent of food insecurity in the county. 
+
+```{R}
+
+ggplot(math_food_joined, aes(Percent_Insecure, Grade, color=County))+geom_point(color = "red") + 
+  scale_x_continuous(breaks = c(5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25)) + ggtitle("Distribution of Math Scores Across Food Insecurity") + ylab("Grade") + xlab("Food Insecurity (%)") + theme(legend.position = "none") 
+
+```
+
+## Visualization: Part 3
+
+This plot seems to suggest that the differences between math scores of places with varying levels of food insecurity is relatively small and arguably inconsequential. These three plots make me think that my initial hypothesis probably is not correct, and food insecurity doesn't have an affect on math scores.
+
+```{R}
+
+ggplot(Categorical_Data, aes(x = Insecure_cat, y = Grade))+
+  geom_bar(stat="summary")+
+  geom_errorbar(stat="summary", color="red") + ggtitle("Distribution of Math Scores Across Food Insecurity") + ylab("Grade") + xlab("Food Insecurity") 
+
+```
+
+## Dimensionality Reduction
+
+For this project I am doing a k-means analysis. Based on the silhouettes graph, I conclude it is probably best to do two groups. What is interesting is that group 1 has high food insecurity and high math scores, while group 2 has low food insecurity and low math scores. This goes against what I expected, which was that high math scores would be common in areas of low food insecurity, and vice versa. I have one hypothesis as to why this happened. I think it is because this data set does not account for rural vs urban communities. Urban counties would probably fall into group 1. Dallas, Harris and Travis county are all group 1. I assume this because they have both wealthy and poor people living in close proximity. The city provides lots of resources that could help kids do well in school, but also provide challenges that lead to food insecurity. Therefore, they would have high math scores and high food insecurity. Future analysis of this data should explore this topic, and see how the results change when you control for urban vs rural counties. 
+
+```{R}
+nonadata <- math_food_joined %>% na.omit() %>% select("Grade", "Percent_Insecure")
+
+library(cluster)
+sil_width<-vector() 
+for(i in 2:10){
+kms <- kmeans(nonadata,centers=i) 
+sil <- silhouette(kms$cluster,dist(nonadata)) 
+sil_width[i]<-mean(sil[,3]) 
+}
+ggplot()+geom_line(aes(x=1:10,y=sil_width))+scale_x_continuous(name="k",breaks=1:10)
+
+kmeans1 <- nonadata %>% scale %>% kmeans(2)
+kmeans1
+
+kmeansclust <- nonadata %>% mutate(cluster=as.factor(kmeans1$cluster))
+kmeansclust %>% ggplot(aes(Grade,Percent_Insecure,color=cluster)) + geom_point()+ ggtitle("Clustering of Math Scores vs Food Insecurity")
+head(math_food_joined %>% filter(!is.na(Grade), !is.na(Percent_Insecure)) %>% mutate(cluster=as.factor(kmeans1$cluster)))
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

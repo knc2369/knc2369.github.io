@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Katelyn Coolidge" />
+    
+    <link rel="shortcut icon" type="image/x-icon" href="../../img/favicon.ico">
+    <title>Project 2 Coolidge</title>
+    <meta name="generator" content="Hugo 0.83.1" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="../../css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="../../"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="../../post/">BLOG</a></li>
+        
+        <li><a href="../../projects/">PROJECTS</a></li>
+        
+        <li><a href="../../resume/">RESUME</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      <div class="container">
+        <div class="blog-post">
+          <h3>
+            <strong><a href="../../project/project2/">Project 2 Coolidge</a></strong>
+          </h3>
+        </div>
+ 
+<div class="blog-title">
+          <h4>
+         January 1, 0001 
+            &nbsp;&nbsp;
+            
+          </h4>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="blogpost">
+              
+
+
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>This data is from the 1980 US Census, specifically concerning married women aged 21-35 with two or more children. It has 30,000 randomly selected observations on 8 variables. The variables should be interpreted as follows:</p>
+<p>morekids: Does the mother have more than 2 children?
+gender1: Gender of the first child
+gender2: Gender of the second child
+age: Mother’s age in years
+afam: Does the mother identify as African American?
+hispanic: Does the mother identify as Hispanic?
+other: Does the mother identify as something other than African American, Hispanic, or Caucasian?
+work: Number of weeks the mother worked in 1979</p>
+<pre class="r"><code>library(tidyverse)</code></pre>
+<pre><code>## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.0 ──</code></pre>
+<pre><code>## ✓ ggplot2 3.3.3     ✓ purrr   0.3.4
+## ✓ tibble  3.0.4     ✓ dplyr   1.0.2
+## ✓ tidyr   1.1.2     ✓ stringr 1.4.0
+## ✓ readr   1.4.0     ✓ forcats 0.5.0</code></pre>
+<pre><code>## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+## x dplyr::filter() masks stats::filter()
+## x dplyr::lag()    masks stats::lag()</code></pre>
+<pre class="r"><code>fertility &lt;- read_csv(&quot;Fertility2.csv&quot;)</code></pre>
+<pre><code>## Warning: Missing column names filled in: &#39;X1&#39; [1]</code></pre>
+<pre><code>## 
+## ── Column specification ────────────────────────────────────────────────────────
+## cols(
+##   X1 = col_double(),
+##   morekids = col_character(),
+##   gender1 = col_character(),
+##   gender2 = col_character(),
+##   age = col_double(),
+##   afam = col_character(),
+##   hispanic = col_character(),
+##   other = col_character(),
+##   work = col_double()
+## )</code></pre>
+<pre class="r"><code>glimpse(fertility)</code></pre>
+<pre><code>## Rows: 30,000
+## Columns: 9
+## $ X1       &lt;dbl&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 1…
+## $ morekids &lt;chr&gt; &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;yes&quot;, &quot;no&quot;, &quot;yes&quot;, &quot;no&quot;…
+## $ gender1  &lt;chr&gt; &quot;female&quot;, &quot;female&quot;, &quot;female&quot;, &quot;male&quot;, &quot;female&quot;, &quot;female&quot;, &quot;f…
+## $ gender2  &lt;chr&gt; &quot;female&quot;, &quot;male&quot;, &quot;female&quot;, &quot;male&quot;, &quot;male&quot;, &quot;male&quot;, &quot;female&quot;…
+## $ age      &lt;dbl&gt; 35, 33, 28, 28, 31, 33, 28, 25, 31, 35, 34, 21, 33, 30, 32, …
+## $ afam     &lt;chr&gt; &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, …
+## $ hispanic &lt;chr&gt; &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, …
+## $ other    &lt;chr&gt; &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, …
+## $ work     &lt;dbl&gt; 40, 52, 12, 0, 0, 0, 0, 20, 0, 37, 0, 12, 12, 0, 52, 52, 52,…</code></pre>
+</div>
+<div id="manova-test" class="section level2">
+<h2>MANOVA Test</h2>
+<p>Below I performed a MANOVA testing whether the number of weeks worked and the age of the mother show a mean difference across levels of the catagorical variable afam. The very small p value indicated that the overall MANOVA is significant.</p>
+<pre class="r"><code>man1&lt;-manova(cbind(work,age)~afam, data=fertility)
+summary(man1)</code></pre>
+<pre><code>##              Df   Pillai approx F num Df den Df    Pr(&gt;F)    
+## afam          1 0.013032   198.04      2  29997 &lt; 2.2e-16 ***
+## Residuals 29998                                              
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>Therefore, I performed follow-up one-way ANOVAs for each variable. I found that both are significant. I performed post-hoc t tests.</p>
+<pre class="r"><code>summary.aov(man1)</code></pre>
+<pre><code>##  Response work :
+##                Df   Sum Sq Mean Sq F value    Pr(&gt;F)    
+## afam            1   164910  164910   346.5 &lt; 2.2e-16 ***
+## Residuals   29998 14276856     476                      
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+##  Response age :
+##                Df Sum Sq Mean Sq F value    Pr(&gt;F)    
+## afam            1    274 274.237  23.974 9.814e-07 ***
+## Residuals   29998 343143  11.439                      
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>fertility%&gt;%group_by(afam)%&gt;%summarize(mean(age),mean(work))</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre><code>## # A tibble: 2 x 3
+##   afam  `mean(age)` `mean(work)`
+##   &lt;chr&gt;       &lt;dbl&gt;        &lt;dbl&gt;
+## 1 no           30.4         18.7
+## 2 yes          30.0         29.1</code></pre>
+<pre class="r"><code>pairwise.t.test(fertility$age,fertility$afam, p.adj=&quot;none&quot;)</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  fertility$age and fertility$afam 
+## 
+##     no     
+## yes 9.8e-07
+## 
+## P value adjustment method: none</code></pre>
+<pre class="r"><code>pairwise.t.test(fertility$work,fertility$afam, p.adj=&quot;none&quot;)</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  fertility$work and fertility$afam 
+## 
+##     no    
+## yes &lt;2e-16
+## 
+## P value adjustment method: none</code></pre>
+<pre class="r"><code>ggplot(fertility, aes(x = work, y = age)) +
+geom_point(alpha = .5) + geom_density_2d(h=2) + coord_fixed() + facet_wrap(~afam)</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<pre class="r"><code>library(rstatix)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;rstatix&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:stats&#39;:
+## 
+##     filter</code></pre>
+<pre class="r"><code>group &lt;- fertility$afam
+DVs &lt;- fertility %&gt;% select(age,work)
+box_m(DVs, group)</code></pre>
+<pre><code>## # A tibble: 1 x 4
+##   statistic p.value parameter method                                            
+##       &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;                                             
+## 1      4.81   0.186         3 Box&#39;s M-test for Homogeneity of Covariance Matric…</code></pre>
+<pre class="r"><code>1-(0.95^5)</code></pre>
+<pre><code>## [1] 0.2262191</code></pre>
+<pre class="r"><code>0.05/5</code></pre>
+<pre><code>## [1] 0.01</code></pre>
+<p>Did 1 MANOVA, 2 ANOVAs, and 2 t tests (5 tests).</p>
+<p>Probability of at least 1 Type 1 error:
+1-0.95^5=0.2262191
+Bonferroni Correction:
+0.05/5=0.01
+Even with the correction, it’s still significant.</p>
+<p>MANOVA Assumptions:
+1. Random samples, independent observations
+Probably met
+2. Multivariate normality of DVs
+Probably failed
+3. Homogeneity of within-group covariance matrices
+Probably failed
+4. Linear relationships among DVs
+Probably met
+5. No extreme univariate or multivariate outliers
+Probably met
+6. No multicollinearity.
+Probably met</p>
+</div>
+<div id="randomization-test" class="section level2">
+<h2>Randomization Test</h2>
+<p>H0: Mean weeks worked is the same for African American women as women of other races.
+HA: Mean weeks worked is different for African American women as compared to women of other races.</p>
+<p>The p value is incredibly small. It was crazy that we got that mean difference. Reject the null hypothesis.</p>
+<pre class="r"><code>fertility%&gt;%group_by(afam)%&gt;%
+summarize(means=mean(work))%&gt;%summarize(`mean_diff`=diff(means))</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##   mean_diff
+##       &lt;dbl&gt;
+## 1      10.4</code></pre>
+<pre class="r"><code>rand_dist&lt;-vector()
+for(i in 1:5000){
+new&lt;-data.frame(work=sample(fertility$work),afam=fertility$afam)
+rand_dist[i]&lt;-mean(new[new$afam==&quot;no&quot;,]$work)-
+mean(new[new$afam==&quot;yes&quot;,]$work)}
+
+{hist(rand_dist,main=&quot;&quot;,ylab=&quot;&quot;); abline(v = c(10.4405, 10.4405),col=&quot;red&quot;)}</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<pre class="r"><code>mean(rand_dist&gt;10.4405 | rand_dist &lt; -10.4405)</code></pre>
+<pre><code>## [1] 0</code></pre>
+</div>
+<div id="linear-regression-model" class="section level2">
+<h2>Linear Regression Model</h2>
+<p>Is there a difference in weeks worked for African American women vs. non-African American women controlling for age?
+H0: Controlling for age, race does not explain variation in weeks worked
+H0: Controlling for race, age does not explain variation in weeks worked
+Controlling for age, for every 1-unit increase in weeks worked, odds of afam change by a factor of 10.7505
+Controlling for race, for every 1-unit increase in weeks worked, age increases by 0.7281 units.</p>
+<p>0.02401509 is the proportion of variation in the response variable explained by the overall model (all predictors at once)</p>
+<p>Recomputing regression results with robust standard errors didn’t really change anything.</p>
+<pre class="r"><code>#Interpret the coefficient estimates (do not discuss significance) (10)
+library(lmtest)</code></pre>
+<pre><code>## Loading required package: zoo</code></pre>
+<pre><code>## 
+## Attaching package: &#39;zoo&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     as.Date, as.Date.numeric</code></pre>
+<pre class="r"><code>library(sandwich)
+fit&lt;-lm(work ~ afam + age, data=fertility)
+summary(fit)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = work ~ afam + age, data = fertility)
+## 
+## Residuals:
+##    Min     1Q Median     3Q    Max 
+## -32.77 -19.11 -12.55  23.08  40.17 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  -3.4641     1.1314  -3.062   0.0022 ** 
+## afamyes      10.7505     0.5575  19.283   &lt;2e-16 ***
+## age           0.7281     0.0370  19.676   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 21.68 on 29997 degrees of freedom
+## Multiple R-squared:  0.02402,    Adjusted R-squared:  0.02395 
+## F-statistic: 369.1 on 2 and 29997 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>#Plot the regression using ggplot() using geom_smooth(method=“lm”). (10)
+ggplot(fertility, aes(age,work, color = afam)) + geom_smooth(method = &quot;lm&quot;, se = F, fullrange = T) + geom_point()+geom_vline(xintercept=20,lty=2)+geom_vline(xintercept=mean(fertility$age))</code></pre>
+<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<pre class="r"><code>#What proportion of the variation in the outcome does your model explain? 
+
+(sum((fertility$work-mean(fertility$work))^2)-sum(fit$residuals^2))/sum((fertility$work-mean(fertility$work))^2)</code></pre>
+<pre><code>## [1] 0.02401509</code></pre>
+<pre class="r"><code>0.02401509</code></pre>
+<pre><code>## [1] 0.02401509</code></pre>
+<pre class="r"><code>#Check assumptions of linearity, normality, and homoskedasticity either graphically or using a hypothesis test (5)
+
+resids&lt;-fit$residuals; fitvals&lt;-fit$fitted.values
+ggplot()+geom_point(aes(fitvals,resids))+geom_hline(yintercept=0, col=&quot;red&quot;)</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-5-2.png" width="672" /></p>
+<pre class="r"><code>ggplot()+geom_histogram(aes(resids),bins=20)</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-5-3.png" width="672" /></p>
+<pre class="r"><code>#Regardless, recompute regression results with robust standard errors via coeftest(..., vcov=vcovHC(...)). Discuss significance of results, including any changes from before/after robust SEs if applicable. (10)
+
+coeftest(fit, vcov = vcovHC(fit))[,1:2]</code></pre>
+<pre><code>##               Estimate Std. Error
+## (Intercept) -3.4641029 1.07659732
+## afamyes     10.7504913 0.56454156
+## age          0.7281006 0.03554687</code></pre>
+</div>
+<div id="linear-regression-model-with-bootstrapped-standard-errors" class="section level2">
+<h2>Linear Regression Model with Bootstrapped Standard Errors</h2>
+<p>The SEs changed quite a bit from the original/robust SEs. The calculations using original/robust SEs for afamyes and age were ~10.75 and ~0.73, respectively. This model yields 0.5563305 and 0.03747412 for afamyes and age.</p>
+<pre class="r"><code>samp_distn&lt;-replicate(5000, {
+boot_dat&lt;-boot_dat&lt;-fertility[sample(nrow(fertility),replace=TRUE),]
+fit&lt;-lm(work ~ afam + age, data=boot_dat)
+coef(fit)
+})
+## Estimated SEs
+samp_distn%&gt;%t%&gt;%as.data.frame%&gt;%summarize_all(sd)</code></pre>
+<pre><code>##   (Intercept)   afamyes        age
+## 1    1.102738 0.5615364 0.03637131</code></pre>
+<pre class="r"><code>fit&lt;-lm(work ~ afam + age, data=fertility)
+resids&lt;-fit$residuals
+fitted&lt;-fit$fitted.values
+resid_resamp&lt;-replicate(5000,{
+new_resids&lt;-sample(resids,replace=TRUE)
+newdat&lt;-fertility
+newdat$new_y&lt;-fitted+new_resids
+fit&lt;-lm(new_y ~ afam + age, data = newdat)
+coef(fit)
+})
+
+resid_resamp%&gt;%t%&gt;%as.data.frame%&gt;%summarize_all(sd)</code></pre>
+<pre><code>##   (Intercept)   afamyes        age
+## 1    1.098957 0.5630139 0.03592216</code></pre>
+</div>
+<div id="logistic-regression-model-with-two-explanatory-variables" class="section level2">
+<h2>Logistic Regression Model With Two Explanatory Variables</h2>
+<p>Controlling for weeks worked, for every 1-unit increase in age, odds of afam change by a factor of 1.021881974
+Controlling for age, for every 1-unit increase in weeks worked, odds of afam change by a factor of 0.9475790646
+Accuracy: 0.9032667
+Sensitivity (TPR): 0.1082603 (this is horrible)
+Specificity (TNR): 0.9479966
+Precision (PPV): 0.1048485 (this is horrible)
+AUC: 0.6105911 this is a poor AUC value.
+It makes sense that if Sensitivity is bad, Precision will also be bad. This model has problems correctly identifying when a woman is African American. The poor AUC implies that it is only a little better than a model making random predictions about whether or not a woman is African American.</p>
+<pre class="r"><code>fertility_data&lt;-fertility%&gt;%mutate(y=ifelse(afam==&quot;yes&quot;,1,0))
+fit2&lt;-glm(y~fertility$age+fertility$work, family=&quot;binomial&quot;, data=fertility_data)
+coeftest(fit2)</code></pre>
+<pre><code>## 
+## z test of coefficients:
+## 
+##                  Estimate Std. Error z value  Pr(&gt;|z|)    
+## (Intercept)    -1.7692818  0.2252672 -7.8541 4.025e-15 ***
+## fertility$age  -0.0538449  0.0075351 -7.1459 8.942e-13 ***
+## fertility$work  0.0216460  0.0011581 18.6911 &lt; 2.2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>probs&lt;-predict(fit2,type=&quot;response&quot;)
+table(predict=as.numeric(probs&gt;.1),truth=fertility_data$y)%&gt;%addmargins</code></pre>
+<pre><code>##        truth
+## predict     0     1   Sum
+##     0   26925  1425 28350
+##     1    1477   173  1650
+##     Sum 28402  1598 30000</code></pre>
+<pre class="r"><code>#accuracy
+(26925+173)/30000</code></pre>
+<pre><code>## [1] 0.9032667</code></pre>
+<pre class="r"><code>#sensitivity
+173/1598</code></pre>
+<pre><code>## [1] 0.1082603</code></pre>
+<pre class="r"><code>#specificity
+26925/28402</code></pre>
+<pre><code>## [1] 0.9479966</code></pre>
+<pre class="r"><code>#precision
+173/1650</code></pre>
+<pre><code>## [1] 0.1048485</code></pre>
+<pre class="r"><code>fertility_data$logit &lt;- predict(fit2, type=&quot;link&quot;)
+fertility_data%&gt;%ggplot()+geom_density(aes(logit,color=afam,fill=afam), alpha=.3)+geom_rug(aes(logit,color=afam))</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<pre class="r"><code>library(plotROC)
+ROCplot&lt;-ggplot(fertility_data)+geom_roc(aes(d=y,m=work+age), n.cuts=0)
+ROCplot</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-7-2.png" width="672" /></p>
+<pre class="r"><code>calc_auc(ROCplot)</code></pre>
+<pre><code>##   PANEL group       AUC
+## 1     1    -1 0.6105911</code></pre>
+</div>
+<div id="logistic-regression-model-with-all-explanatory-variables" class="section level2">
+<h2>Logistic Regression Model With All Explanatory Variables</h2>
+<p>Accuracy: 0.8618333
+Sensitivity (TPR): 0.2534418 (this is horrible- a slight improvement from last time)
+Specificity (TNR): 0.8960637
+Precision (PPV): 0.1206434 (this is horrible)
+AUC: 0.6900022 (This is a poor, borderline fair AUC value.It’s an improvement from before but it’s not good)</p>
+<p>After doing the 10-fold CV, the accuracy increased to 0.9467333, the sensitivity decreased to ~0, and the specificity increased to ~1. The AUC decreased to 0.6882682</p>
+<p>After doing the LASSO, the following variables are retained: morekidsyes, age, hispanicyes, otheryes, and work.</p>
+<p>After performing a 10-fold CV using only the variables lasso selected, the model’s out-of-sample AUC (0.6887184) is not that different from the logistic regression above (0.6882682). It is a little worse than the first logistic regression (0.6900022).</p>
+<pre class="r"><code>#Fit model, compute in-sample classification diagnostics (Accuracy, Sensitivity, Specificity, Precision, AUC), and interpret (5)
+
+fertility_data6&lt;-fertility%&gt;%mutate(y=ifelse(afam==&quot;yes&quot;,1,0))
+fertility_data6$afam &lt;- NULL
+
+fit6&lt;-glm(y~., family=&quot;binomial&quot;, data=fertility_data6)
+coeftest(fit6)</code></pre>
+<pre><code>## 
+## z test of coefficients:
+## 
+##                Estimate  Std. Error z value  Pr(&gt;|z|)    
+## (Intercept) -1.5853e+00  2.3459e-01 -6.7578 1.401e-11 ***
+## X1           5.5631e-06  3.0100e-06  1.8482   0.06457 .  
+## morekidsyes  5.8929e-01  5.3720e-02 10.9698 &lt; 2.2e-16 ***
+## gender1male  2.6193e-02  5.2125e-02  0.5025   0.61531    
+## gender2male -5.0370e-03  5.2085e-02 -0.0967   0.92296    
+## age         -6.9773e-02  7.6968e-03 -9.0652 &lt; 2.2e-16 ***
+## hispanicyes -1.0835e+00  1.8757e-01 -5.7763 7.635e-09 ***
+## otheryes    -1.5404e+01  1.5203e+02 -0.1013   0.91930    
+## work         2.4059e-02  1.1838e-03 20.3245 &lt; 2.2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>probs&lt;-predict(fit6,type=&quot;response&quot;)
+table(predict=as.numeric(probs&gt;.1),truth=fertility_data6$y)%&gt;%addmargins</code></pre>
+<pre><code>##        truth
+## predict     0     1   Sum
+##     0   25450  1193 26643
+##     1    2952   405  3357
+##     Sum 28402  1598 30000</code></pre>
+<pre class="r"><code>#accuracy
+(25450+405)/30000</code></pre>
+<pre><code>## [1] 0.8618333</code></pre>
+<pre class="r"><code>#sensitivity
+405/1598</code></pre>
+<pre><code>## [1] 0.2534418</code></pre>
+<pre class="r"><code>#specificity
+25450/28402</code></pre>
+<pre><code>## [1] 0.8960637</code></pre>
+<pre class="r"><code>#precision
+405/3357</code></pre>
+<pre><code>## [1] 0.1206434</code></pre>
+<pre class="r"><code>ROCplot&lt;-ggplot(fertility_data6)+geom_roc(aes(d=y,m=probs), n.cuts=0)+ geom_segment(aes(x=0,xend=1,y=0,yend=1),lty=2)
+calc_auc(ROCplot)</code></pre>
+<pre><code>##   PANEL group       AUC
+## 1     1    -1 0.6900022</code></pre>
+<pre class="r"><code>#Perform 10-fold (or repeated random sub-sampling) CV with the same model and report average out-of-sample classification diagnostics (Accuracy, Sensitivity, Specificity, Precision, and AUC); interpret AUC and compare with the in-sample metrics (10)
+
+set.seed(1234)
+k=10 #choose number of folds
+data&lt;-fertility_data6[sample(nrow(fertility_data6)),] #randomly order rows
+folds&lt;-cut(seq(1:nrow(fertility_data6)),breaks=k,labels=F) #create folds
+diags&lt;-NULL
+for(i in 1:k){
+## Create training and test sets
+train&lt;-data[folds!=i,]
+test&lt;-data[folds==i,]
+truth&lt;-test$y ## Truth labels for fold i
+## Train model on training set (all but fold i)
+fit&lt;-glm(y~.,data=train,family=&quot;binomial&quot;)
+## Test model on test set (fold i)
+probs&lt;-predict(fit,newdata = test,type=&quot;response&quot;)
+## Get diagnostics for fold i
+diags&lt;-rbind(diags,class_diag(probs,truth))
+}
+summarize_all(diags,mean) #average diagnostics across all k folds</code></pre>
+<pre><code>##         acc sens spec ppv       auc
+## 1 0.9467333    0    1 NaN 0.6882682</code></pre>
+<pre class="r"><code>#Perform LASSO on the same model/variables. Choose lambda to give the simplest model whose accuracy is near that of the best (i.e., lambda.1se). Discuss which variables are retained. (5)
+
+#install.packages(&quot;glmnet&quot;)
+library(glmnet)</code></pre>
+<pre><code>## Loading required package: Matrix</code></pre>
+<pre><code>## 
+## Attaching package: &#39;Matrix&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:tidyr&#39;:
+## 
+##     expand, pack, unpack</code></pre>
+<pre><code>## Loaded glmnet 4.0-2</code></pre>
+<pre class="r"><code>set.seed(1234)
+predictors &lt;- model.matrix(y ~ (.), data = fertility_data6)[, -1]
+response_variable &lt;- as.matrix(fertility_data6$y)
+
+cv &lt;- cv.glmnet(predictors, response_variable, family = &quot;binomial&quot;)
+lasso &lt;- glmnet(predictors, response_variable, family = &quot;binomial&quot;, lambda = cv$lambda.1se)
+coef(lasso)</code></pre>
+<pre><code>## 9 x 1 sparse Matrix of class &quot;dgCMatrix&quot;
+##                      s0
+## (Intercept) -2.78383611
+## X1           .         
+## morekidsyes  0.20441721
+## gender1male  .         
+## gender2male  .         
+## age         -0.01615886
+## hispanicyes -0.22853189
+## otheryes    -0.70599276
+## work         0.01603183</code></pre>
+<pre class="r"><code>#Perform 10-fold CV using only the variables lasso selected: compare model’s out-of-sample AUC to that of your logistic regressions above
+
+lasso_classdiag &lt;- fertility %&gt;% mutate(morekids = ifelse(morekids == &quot;yes&quot;, 1, 0)) %&gt;% mutate(afam = ifelse(afam == &quot;yes&quot;, 1, 0)) %&gt;% mutate(hispanic = ifelse(hispanic == &quot;yes&quot;, 1, 0)) %&gt;% mutate(other = ifelse(other == &quot;yes&quot;, 1, 0)) %&gt;% select(morekids, age, hispanic, other, work, afam)
+
+set.seed(125)
+k = 10
+data &lt;- lasso_classdiag[sample(nrow(lasso_classdiag)), ]
+folds &lt;- cut(1:nrow(lasso_classdiag), breaks = k, labels = F)
+diags &lt;- NULL
+for (i in 1:k) {
+    train &lt;- data[folds != i, ]
+    test &lt;- data[folds == i, ]
+    truth &lt;- test$afam
+    fit &lt;- glm(afam ~ (.), data = train, family = &quot;binomial&quot;)
+    probs &lt;- predict(fit, newdata = test, type = &quot;response&quot;)
+    diags &lt;- rbind(diags, class_diag(probs, truth))
+}
+summarize_all(diags, mean)</code></pre>
+<pre><code>##         acc sens spec ppv       auc
+## 1 0.9467333    0    1 NaN 0.6885087</code></pre>
+</div>
+
+            
+        <hr>         <div class="related-posts">
+                <h5>Related Posts</h5>
+                
+              </div> 
+            </div>
+          </div>
+
+   <hr>  <div class="disqus">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+    (function() {
+      
+      
+      if (window.location.hostname == "localhost")
+        return;
+
+      var disqus_shortname = '';
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div> 
+        </div>
+      </div>
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="../../js/docs.min.js"></script>
+<script src="../../js/main.js"></script>
+
+<script src="../../js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>
